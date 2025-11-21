@@ -19,7 +19,7 @@ def setUp_individual_playlist(filepath):
     except FileNotFoundError:
        print(f"Error: File '{filepath}' not found!")
        return None
-   
+
     
     # make the list to delete and delete those columns
     list_to_delete = ["Release Date", "Duration (ms)", "Popularity", "Explicit", "Added By", "Added At", "Genres", "Record Label", "Danceability", "Energy", "Key", "Loudness", "Mode", "Speechiness", "Acousticness", "Instrumentalness", "Liveness", "Valence", "Tempo", "Time Signature"]
