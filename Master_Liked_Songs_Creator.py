@@ -89,16 +89,27 @@ def artist_matcher(liked_songs, playlist, i, j):
     return
 
 
-def check_sharing_and_append(liked_songs, playlist, i, j):
+def check_sharing_and_append(liked_songs, playlist):
     # check playlist song by song and check to see if its in liked
     # if not in liked, append to the end of liked
     # check for sharing by Spotify ID
-    print("hi")
+    for i in range(len(playlist)):
+        j = find_shared_songs(liked_songs, playlist, i)
+        if j is None:
+            row = playlist.iloc[i]
+            liked_songs = pd.concat([liked_songs, row.to_frame().T], ignore_index=True)
+
+    return liked_songs
 
 
 
 
 
 if __name__ == "__main__":
-    playlist = setUp_individual_playlist('Desktop\Music Project\Playlists\“make_out_chilling_tuesday_late_night”.csv')
-    liked_songs = sort_songs('\Desktop\Music Project\Spotify_Liked_Songs.csv')
+    # loop through all files in folder
+    # use the updated liked songs master list for each new iteration for checking playlist
+
+
+
+    PX = setUp_individual_playlist('Desktop\Music Project\Playlists\“make_out_chilling_tuesday_late_night”.csv')
+    LS = sort_songs('\Desktop\Music Project\Spotify_Liked_Songs.csv')
