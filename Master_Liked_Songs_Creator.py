@@ -17,7 +17,7 @@ def setUp_individual_playlist(filepath):
         # load the dataset in
         df = pd.read_csv(filepath)
     except FileNotFoundError:
-       print(f"Error: File '{filepath}' not found!")
+       print(f"Error: File '{filepath}' not found!\n")
        return None
 
     
@@ -27,9 +27,16 @@ def setUp_individual_playlist(filepath):
 
 
     # check for empty cells and return if there are any
+    # say what rows in the dataframe are missing songs
     dropped_isNa_df = dropped_df.isna().any()
-    if(dropped_isNa_df.sum() > 0):
-        print("Missing data in important columns (Track URI, Track Name, Album Name, or Artist Name(s))")
+    if(dropped_isNa_df.sum() > 0 or dropped_df.isin(['undefined']).any().any()):
+        print(f"{filepath} is missing data in important columns (Track URI, Track Name, Album Name, or Artist Name(s))\n")
+        copy = dropped_df.copy()
+        mask = copy.isna() | (copy == "undefined")
+        rows_missing = mask.any(axis=1)
+        indexes = copy.index[rows_missing].tolist()
+        indexes_1_based = [x+2 for x in indexes]
+        print(f"Rows with missing or undefined data: {indexes_1_based}")
         return None
         
     
@@ -51,15 +58,30 @@ def setUp_individual_playlist(filepath):
 def sort_songs(filepath): #function for sorting the liked songs, both at start and after appending
     try:
         # load the dataset in
-        df = pd.read_csv(filepath)
+        df = pd.read_csv(filepath, encoding='cp1252')
     except FileNotFoundError:
-        print(f"Error: File '{filepath}' not found!")
+        print(f"Error: File '{filepath}' not found!\n")
         return None
 
     #sort the liked songs by Spotify ID to match the sorting method of the playlist
     sorted_liked_songs = df.sort_values(by="Spotify - id")
 
     return sorted_liked_songs
+
+
+def check_empty(liked_songs):
+    liked_songs_isNa = liked_songs.isna().any()
+    if (liked_songs_isNa.sum() > 0 or liked_songs_isNa.isin(['undefined']).any().any()):
+        print("Liked_songs is missing data in important columns (Track URI, Track Name, Album Name, or Artist Name(s))\n")
+        copy = liked_songs.copy()
+        mask = copy.isna() | (copy == "undefined")
+        rows_missing = mask.any(axis=1)
+        indexes = copy.index[rows_missing].tolist()
+        indexes_1_based = [x+2 for x in indexes]
+        print(f"Rows with missing or undefined data: {indexes_1_based}")
+    else:
+        return
+
 
 
 def find_shared_songs(liked_songs, playlist, i): #helper function to find the shared songs
@@ -70,6 +92,9 @@ def find_shared_songs(liked_songs, playlist, i): #helper function to find the sh
         return i
 
 
+"""
+
+# not needed I dont think
 def find_in_liked_songs(liked_songs, playlist, i): #taking the song from playlist, find what row it's in in liked songs
     # NECESSARY that the song is in liked songs
     for j in range(len(liked_songs)): #go through the length of liked songs searching for the song
@@ -80,7 +105,7 @@ def find_in_liked_songs(liked_songs, playlist, i): #taking the song from playlis
     return None
 
 
-def artist_matcher(liked_songs, playlist, i, j):
+def artist_matcher(liked_songs, playlist, i, j): #if song isn't in liked, nothing to match
     # requirement that the two songs are exactly the same, use the same i and j as last helper function to check
     if liked_songs.iloc[j, 3] == playlist.iloc[i, 0]: #if the songs share the Spotify ID
         playlist.iat[i, 2] = liked_songs.iloc[j, 1] #make the artists match, this is for searching on youtube
@@ -88,6 +113,7 @@ def artist_matcher(liked_songs, playlist, i, j):
         print(f"Unmatched songs at row {i} in playlist, row {j} in liked songs. Please advise!")
     return
 
+"""
 
 def check_sharing_and_append(liked_songs, playlist):
     # check playlist song by song and check to see if its in liked
@@ -95,7 +121,10 @@ def check_sharing_and_append(liked_songs, playlist):
     # check for sharing by Spotify ID
     for i in range(len(playlist)):
         j = find_shared_songs(liked_songs, playlist, i)
-        if j is None:
+        if j is None: #playlist song is in liked songs
+            continue
+
+        else: # j == i
             row = playlist.iloc[i]
             liked_songs = pd.concat([liked_songs, row.to_frame().T], ignore_index=True)
 
@@ -109,7 +138,58 @@ if __name__ == "__main__":
     # loop through all files in folder
     # use the updated liked songs master list for each new iteration for checking playlist
 
+    playlist_filepaths = [
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\make_out_chilling_tuesday_late_night.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Brent_Faiyaz.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Chill.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Death_Grips.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Frank_Ocean.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\GHOST_.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_tiktok_songs.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_Times_(edit_using_songs_in_notes_and_delete_unliked_and_love_me_harder)(change_name_to_vibes).csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\JuiceWRLD.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\KDOT.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\laufey_.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Mixed.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Music_Recs_.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Nihon.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Old_But_Good.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\ONE_MONTH_.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\PEGGY_.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\rap.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Rick_and_Morty.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\The_Weeknd.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Tyler,_The_Creator.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Uhhhh_ok.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Vickys_recommendations.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\violin.csv',
+        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\youd_be_surprised.csv'
+    ]
+
+    playlists = []
+    for filepath in playlist_filepaths:
+        playlist_X = setUp_individual_playlist(filepath)
+        if playlist_X is None:
+            print(f"Failure to create pandas dataframe from filepath: \n{filepath}\n")
+            continue
+
+        else:
+            playlists.append(playlist_X)
 
 
-    PX = setUp_individual_playlist('Desktop\Music Project\Playlists\“make_out_chilling_tuesday_late_night”.csv')
-    LS = sort_songs('\Desktop\Music Project\Spotify_Liked_Songs.csv')
+    # LS is a dataframe of all the liked songs, to be updated after each playlist
+    LS = sort_songs(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Spotify_Liked_Songs.csv')
+    check_empty(LS)
+
+    for i in range(len(playlists)):
+        LS = check_sharing_and_append(LS, playlists[i])
+
+
+    liked_list_to_delete = ["Playlist name", "Type", "ISRC"]
+    refined_LS = LS.drop(liked_list_to_delete, axis=1)
+
+    # refined_LS.to_csv(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Master_Liked_Songs.csv', index=False)
+
+    # after testing, duplicate Spotify - id found
+    # subset refinded list and find duplicates, how to handle unsure
+    duplicates = refined_LS[refined_LS.duplicated(subset=['Spotify - id'])]
