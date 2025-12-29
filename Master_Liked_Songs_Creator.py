@@ -46,6 +46,7 @@ def setUp_individual_playlist(filepath):
     
     # change data to drop the spotifiy:track: from the Spotify - id
     new_df["Spotify - id"] = new_df["Spotify - id"].str.replace("spotify:track:", "", regex=False)
+    new_df["Spotify - id"] = new_df["Spotify - id"].str.replace("spotify:episode:", "", regex=False)
 
     
     # sort the dataframe by Spotify ID
@@ -83,6 +84,8 @@ def check_empty(liked_songs):
         return
 
 
+# THIS IS WHATS CAUSING THE DUPLICATES BOOOO YOU SUCK
+# you were actually fine I think so idk what was going on but I debugged with smaller and copied
 
 def find_shared_songs(liked_songs, playlist, i): #helper function to find the shared songs
     # to be ran in a for loop that calls the function and passes i as the active row in the playlist
@@ -124,7 +127,7 @@ def check_sharing_and_append(liked_songs, playlist):
         if j is None: #playlist song is in liked songs
             continue
 
-        else: # j == i
+        if j == i:
             row = playlist.iloc[i]
             liked_songs = pd.concat([liked_songs, row.to_frame().T], ignore_index=True)
 
@@ -181,15 +184,78 @@ if __name__ == "__main__":
     LS = sort_songs(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Spotify_Liked_Songs.csv')
     check_empty(LS)
 
-    for i in range(len(playlists)):
-        LS = check_sharing_and_append(LS, playlists[i])
-
-
     liked_list_to_delete = ["Playlist name", "Type", "ISRC"]
     refined_LS = LS.drop(liked_list_to_delete, axis=1)
 
-    # refined_LS.to_csv(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Master_Liked_Songs.csv', index=False)
+    #debugging
+    # print("Refined liked songs:\n")
+    # print(refined_LS.head())
+    # print("\n")
+    # print("playlist 1:\n")
+    # print(playlists[0].head())
+    # print("\n")
+    # print(playlists[0].iloc[0, 0])
+    # print("\n")
+    # print(refined_LS.iloc[0, 3])
+    # print("\n")
+    # print(refined_LS.iloc[0:5, 3].values)
+    # print("\n")
+    # print(playlists[0].iloc[0, 0] in refined_LS.iloc[0:5, 3].values)
+    # print("\n")
+    #
+    #
+    # sample_df_data_1 = { #liked songs
+    #     'Name' : ['Jack', 'Bob', 'Ron', 'Alice', 'Jessica', 'Becky'],
+    #     'Age' : [12, 13, 14, 15, 16, 17]
+    # }
+    #
+    # sample_df_data_2 = { #playlists
+    #     'Age': [12, 13, 24, 25],
+    #     'Name': ['Jack', 'Bob', 'Tom', 'Bella']
+    # }
+    #
+    # df1 = pd.DataFrame(sample_df_data_1)
+    # df2 = pd.DataFrame(sample_df_data_2)
+    #
+    # print(df1)
+    # print(df2)
+    #
+    # for i in range(len(df2)):
+    #
+    #     print(df2.iloc[i, 1])
+    #     print(df1.iloc[:, 0].values)
+    #
+    #     if df2.iloc[i, 1] in df1.iloc[:, 0].values:  # if subset name is in the list of names in the master list
+    #         j = None  # so the new i can be passed in
+    #     else:  # playlist song is not in liked songs, so append to liked songs
+    #         j = i
+    #
+    #     if j is None: #playlist song is in liked songs
+    #         print("j is None so go to next song")
+    #         continue
+    #
+    #     if j == i:
+    #         print("j is i, so its not in the main df")
+    #         row = df2.iloc[i]
+    #         df1 = pd.concat([df1, row.to_frame().T], ignore_index=True)
+    #
+    # print(df1)
+    # print(df2)
 
-    # after testing, duplicate Spotify - id found
-    # subset refinded list and find duplicates, how to handle unsure
-    duplicates = refined_LS[refined_LS.duplicated(subset=['Spotify - id'])]
+
+    for i in range(len(playlists)):
+        refined_LS = check_sharing_and_append(refined_LS, playlists[i])
+
+
+    # print(playlists[13]), this is Nihon
+
+    # maybe go throught the refined_LS and find non-english characters (not including (, [, and punc.)
+    # dont count !
+    # take all rows and make a new df for correcting
+    # using the spotify ID, go back to the master list and replace the title, album, or artist with the correct info
+    # correct info will be given by the user
+    #   for me, most will come from Nihon
+    # you can take all playlists, make a huge df and then search for the spotify ID and replace
+    # the right characters are in the playlists df but not the main one
+
+    # refined_LS.to_csv(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Master_Liked_Songs.csv', index=False)
