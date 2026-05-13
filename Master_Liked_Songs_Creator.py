@@ -6,6 +6,10 @@ Created on Thu Nov 20 12:48:36 2025
 """
 
 import pandas as pd
+# import requests
+from playwright.sync_api import sync_playwright
+import time
+import os
 
 # for testing and seeing the whole dataframe
 pd.set_option('display.max_rows', None)  # Show all rows
@@ -134,121 +138,70 @@ def check_sharing_and_append(liked_songs, playlist):
     return liked_songs
 
 
-
-
-
 if __name__ == "__main__":
     # loop through all files in folder
     # use the updated liked songs master list for each new iteration for checking playlist
 
-    playlist_filepaths = [
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\make_out_chilling_tuesday_late_night.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Brent_Faiyaz.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Chill.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Death_Grips.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Frank_Ocean.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\GHOST_.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_tiktok_songs.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_Times_(edit_using_songs_in_notes_and_delete_unliked_and_love_me_harder)(change_name_to_vibes).csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\JuiceWRLD.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\KDOT.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\laufey_.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Mixed.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Music_Recs_.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Nihon.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Old_But_Good.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\ONE_MONTH_.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\PEGGY_.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\rap.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Rick_and_Morty.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\The_Weeknd.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Tyler,_The_Creator.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Uhhhh_ok.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Vickys_recommendations.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\violin.csv',
-        r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\youd_be_surprised.csv'
-    ]
-
-    playlists = []
-    for filepath in playlist_filepaths:
-        playlist_X = setUp_individual_playlist(filepath)
-        if playlist_X is None:
-            print(f"Failure to create pandas dataframe from filepath: \n{filepath}\n")
-            continue
-
-        else:
-            playlists.append(playlist_X)
-
-
-    # LS is a dataframe of all the liked songs, to be updated after each playlist
-    LS = sort_songs(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Spotify_Liked_Songs.csv')
-    check_empty(LS)
-
-    liked_list_to_delete = ["Playlist name", "Type", "ISRC"]
-    refined_LS = LS.drop(liked_list_to_delete, axis=1)
-
-    #debugging
-    # print("Refined liked songs:\n")
-    # print(refined_LS.head())
-    # print("\n")
-    # print("playlist 1:\n")
-    # print(playlists[0].head())
-    # print("\n")
-    # print(playlists[0].iloc[0, 0])
-    # print("\n")
-    # print(refined_LS.iloc[0, 3])
-    # print("\n")
-    # print(refined_LS.iloc[0:5, 3].values)
-    # print("\n")
-    # print(playlists[0].iloc[0, 0] in refined_LS.iloc[0:5, 3].values)
-    # print("\n")
+    # playlist_filepaths = [
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\make_out_chilling_tuesday_late_night.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Brent_Faiyaz.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Chill.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Death_Grips.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Frank_Ocean.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\GHOST_.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_tiktok_songs.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Good_Times_(edit_using_songs_in_notes_and_delete_unliked_and_love_me_harder)(change_name_to_vibes).csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\JuiceWRLD.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\KDOT.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\laufey_.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Mixed.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Music_Recs_.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Nihon.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Old_But_Good.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\ONE_MONTH_.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\PEGGY_.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\rap.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Rick_and_Morty.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\The_Weeknd.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Tyler,_The_Creator.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Uhhhh_ok.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\Vickys_recommendations.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\violin.csv',
+    #     r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Playlists\youd_be_surprised.csv'
+    # ]
     #
-    #
-    # sample_df_data_1 = { #liked songs
-    #     'Name' : ['Jack', 'Bob', 'Ron', 'Alice', 'Jessica', 'Becky'],
-    #     'Age' : [12, 13, 14, 15, 16, 17]
-    # }
-    #
-    # sample_df_data_2 = { #playlists
-    #     'Age': [12, 13, 24, 25],
-    #     'Name': ['Jack', 'Bob', 'Tom', 'Bella']
-    # }
-    #
-    # df1 = pd.DataFrame(sample_df_data_1)
-    # df2 = pd.DataFrame(sample_df_data_2)
-    #
-    # print(df1)
-    # print(df2)
-    #
-    # for i in range(len(df2)):
-    #
-    #     print(df2.iloc[i, 1])
-    #     print(df1.iloc[:, 0].values)
-    #
-    #     if df2.iloc[i, 1] in df1.iloc[:, 0].values:  # if subset name is in the list of names in the master list
-    #         j = None  # so the new i can be passed in
-    #     else:  # playlist song is not in liked songs, so append to liked songs
-    #         j = i
-    #
-    #     if j is None: #playlist song is in liked songs
-    #         print("j is None so go to next song")
+    # playlists = []
+    # for filepath in playlist_filepaths:
+    #     playlist_X = setUp_individual_playlist(filepath)
+    #     if playlist_X is None:
+    #         print(f"Failure to create pandas dataframe from filepath: \n{filepath}\n")
     #         continue
     #
-    #     if j == i:
-    #         print("j is i, so its not in the main df")
-    #         row = df2.iloc[i]
-    #         df1 = pd.concat([df1, row.to_frame().T], ignore_index=True)
+    #     else:
+    #         playlists.append(playlist_X)
     #
-    # print(df1)
-    # print(df2)
+    # # LS is a dataframe of all the liked songs, to be updated after each playlist
+    # LS = sort_songs(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Spotify_Liked_Songs.csv')
+    # check_empty(LS)
+    #
+    # liked_list_to_delete = ["Playlist name", "Type", "ISRC"]
+    # refined_LS = LS.drop(liked_list_to_delete, axis=1)
+    #
+    # for i in range(len(playlists)):
+    #     refined_LS = check_sharing_and_append(refined_LS, playlists[i])
 
-
-    for i in range(len(playlists)):
-        refined_LS = check_sharing_and_append(refined_LS, playlists[i])
-
+    #
+    # }
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
 
     # print(playlists[13]), this is Nihon
-
     # maybe go throught the refined_LS and find non-english characters (not including (, [, and punc.)
     # dont count !
     # take all rows and make a new df for correcting
@@ -258,4 +211,3 @@ if __name__ == "__main__":
     # you can take all playlists, make a huge df and then search for the spotify ID and replace
     # the right characters are in the playlists df but not the main one
 
-    # refined_LS.to_csv(r'C:\Users\Aaron A S Burgess\Desktop\Music Project\Master_Liked_Songs.csv', index=False)
